@@ -9,7 +9,7 @@
     ],
     "require": {
 		"yiisoft/yii2": "~2.0.9"
-	}
+	},
 	"autoload": {
         "psr-4": {
             "deepziyu\\yii\\rest": ""
