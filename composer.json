@@ -12,7 +12,7 @@
 	},
 	"autoload": {
         "psr-4": {
-            "deepziyu\\yii\\rest": ""
+            "deepziyu\\yii\\rest\\": ""
         }
     }
 }
