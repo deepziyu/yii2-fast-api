@@ -14,5 +14,5 @@
         "psr-4": {
             "deepziyu\\yii\\rest": ""
         }
-    },
+    }
 }
