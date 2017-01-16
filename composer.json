@@ -1,0 +1,18 @@
+{
+    "name": "deepziyu/yii-fast-api",
+    "description": "A component to develop api faster on yii2 framework",
+    "authors": [
+        {
+            "name": "deepziyu",
+            "email": "lizhenju21@sina.com"
+        }
+    ],
+    "require": {
+		"yiisoft/yii2": "~2.0.9"
+	}
+	"autoload": {
+        "psr-4": {
+            "deepziyu\\yii\\rest": ""
+        }
+    },
+}
