@@ -77,8 +77,7 @@ class Controller extends \yii\rest\Controller
 
         $params = array_merge($params,$this->request->getBodyParams());
 
-        $rules = $this->rules();
-        $rule = isset($rules[$action->id]) ? $rules[$action->id] : (isset($rules['*']) ? $rules['*'] : []);
+        $rule = $this->getRule($action);
         if ($rule) {
             $model = new DynamicModel($params,$rule);
             $model->validate();
@@ -120,6 +119,18 @@ class Controller extends \yii\rest\Controller
         $this->actionParams = $actionParams;
 
         return $args;
+    }
+
+    /**
+     * @param \yii\base\Action $action $action
+     * @return array
+     */
+    protected function getRule($action)
+    {
+        $rules = $this->rules();
+        $commonRule = isset($rules['*']) ? $rules['*'] :  [];
+        $uniqueRule = isset($rules[$action->id]) ? $rules[$action->id] : [];
+        return array_merge($commonRule,$uniqueRule);
     }
 
     public function setExpand($expand)
