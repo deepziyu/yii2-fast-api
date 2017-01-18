@@ -80,6 +80,7 @@ class Controller extends \yii\rest\Controller
         $rule = $this->getRule($action);
         if ($rule) {
             $model = new DynamicModel($params,$rule);
+            $model->getValidators();
             $model->validate();
             if($model){
                 throw new ApiException(422,$model);

@@ -13,6 +13,9 @@ $config = [
             ],
         ]
     ],
+    'modules'=>[
+        'route'=>'deepziyu\yii\rest\module\RouteModule',
+    ],
     'components' => [
         'errorHandler' => [
             'class'=>'deepziyu\yii\rest\ErrorHandler'

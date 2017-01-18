@@ -166,7 +166,7 @@ class Route extends \yii\base\Object
         try {
             $prefix = '/' . $controller->uniqueId . '/';
             foreach ($controller->actions() as $id => $value) {
-                $result[$prefix . $id] = $prefix . $id;
+                //$result[$prefix . $id] = $prefix . $id;
             }
             $class = new \ReflectionClass($controller);
             foreach ($class->getMethods() as $method) {
