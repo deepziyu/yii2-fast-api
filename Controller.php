@@ -9,6 +9,7 @@ use yii\web\BadRequestHttpException;
 use yii\validators\Validator;
 use yii\base\DynamicModel;
 use yii\base\Model;
+use deepziyu\yii\rest\ApiException;
 
 /**
  * Class Controller
@@ -77,17 +78,6 @@ class Controller extends \yii\rest\Controller
 
         $params = array_merge($params,$this->request->getBodyParams());
 
-        $rule = $this->getRule($action);
-        if ($rule) {
-            $model = new DynamicModel($params,$rule);
-            $model->getValidators();
-            $model->validate();
-            if($model){
-                throw new ApiException(422,$model);
-            }
-            $params = $model->getAttributes();
-        }
-
         $args = [];
         $missing = [];
         $actionParams = [];
@@ -117,9 +107,20 @@ class Controller extends \yii\rest\Controller
             ]));
         }
 
+        $rule = $this->getRule($action);
+        if ($rule) {
+            $model = DynamicModel::validateData($actionParams,$rule);
+            $model->getValidators();
+            $model->validate();
+            if($model->hasErrors()){
+                throw new ApiException(422,$model);
+            }
+            $actionParams = $model->getAttributes();
+        }
+
         $this->actionParams = $actionParams;
 
-        return $args;
+        return $actionParams;
     }
 
     /**
