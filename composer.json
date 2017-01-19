@@ -1,6 +1,7 @@
 {
     "name": "deepziyu/yii-fast-api",
     "description": "A component to develop api faster on yii2 framework",
+    "license": "BSD-3-Clause",
     "authors": [
         {
             "name": "deepziyu",
