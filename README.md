@@ -84,6 +84,16 @@ Content-Type: application/json
 
 - 查看自动生成的Api文档
 
-http://yoursite.com/route/api/index
+http ://yoursite.com/route/api/index
 
 ![mahua](http://ok0rjq3jz.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20170119165300.png)
+
+### Words In The End
+感谢@暗夜在火星 的PhalApi项目，为此Yii2扩展提供设计的思路。
+
+### TODO
+
+- 更完善的文档指南
+- Signature 过滤器插件
+- 限流插件的使用
+- RequestID 以及日志存储追踪的参考
