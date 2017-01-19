@@ -30,7 +30,7 @@ return $config;
 ### Usage
 
 - 建立控制器
-```php
+```
 class YourController extends deepziyu\yii\rest\Controller
 {
     /**
@@ -49,8 +49,8 @@ class YourController extends deepziyu\yii\rest\Controller
 
 正常请求
 ```curl
-POST /site/index HTTP/1.1
-Host: api.yii
+POST /your/index HTTP/1.1
+Host: yoursite.com
 Content-Type: application/json
 
 {"id":"10"}
@@ -68,8 +68,8 @@ Content-Type: application/json
 ```
 缺少参数的请求
 ```curl
-POST /site/index HTTP/1.1
-Host: api.yii
+POST /your/index HTTP/1.1
+Host: yoursite.com
 Content-Type: application/json
 
 ```
@@ -84,6 +84,6 @@ Content-Type: application/json
 
 - 查看自动生成的Api文档
 
-http://yousite.com/route/api/index
+http://yoursite.com/route/api/index
 
 ![mahua](http://ok0rjq3jz.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20170119165300.png)
