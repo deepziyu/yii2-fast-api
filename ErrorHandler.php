@@ -9,6 +9,10 @@ use yii\web\HttpException;
 use yii\web\Response;
 use yii\helpers\VarDumper;
 
+/**
+ * Class ErrorHandler
+ * @package deepziyu\yii\rest
+ */
 class ErrorHandler extends \yii\web\ErrorHandler
 {
     /**

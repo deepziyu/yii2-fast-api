@@ -10,18 +10,18 @@ use yii\validators\Validator;
 use yii\base\DynamicModel;
 use yii\base\Model;
 use deepziyu\yii\rest\ApiException;
+use yii\web\User;
 
 /**
  * Class Controller
  * @property Request $request The request component.
- * @property Validator $validator The validator component.
+ * @property User $user The user model.
  * @package deepziyu\yii\rest
  */
 class Controller extends \yii\rest\Controller
 {
     public $request;
     public $user;
-    public $validator;
 
     public $enableCsrfValidation = false;
 
@@ -35,27 +35,52 @@ class Controller extends \yii\rest\Controller
         parent::init();
         $this->user = Yii::$app->user->identity;
         $this->request = Yii::$app->getRequest();
-        $this->validator = Yii::createObject([
-            'class'=>'yii\validators\Validator',
-            'enableClientValidation' =>false,
-        ]);
     }
 
+    /**
+     * 默认的action为空
+     * @return array
+     */
     public function actions()
     {
         return [];
     }
 
-    public function __get($name)
-    {
-        return parent::__get($name);
-    }
-
+    /**
+     * 参数的检验规则
+     * 次方法返回的预设规则将在beforeAction事件中被校验
+     * 使用示例：
+     * ```php
+     * return [
+     *    //设置 indexAction()的rule
+     *    'index' => [
+     *         ['param1','string','min'=>1,'max'=>6],
+     *         ['param2','integer'],
+     *    ];
+     * ];
+     * ```
+     * 可以用 * 号通配所有的actions
+     * ```php
+     * return [
+     *    '*' => [
+     *         ['user_id','integer']//所有的user_id都将被IntegerVa校验
+     *    ];
+     * ];
+     * ```
+     * 更多检验器的设置方法见
+     * http://www.yiichina.com/doc/guide/2.0/input-
+     *
+     * @return array
+     */
     public function rules()
     {
         return [];
     }
 
+    /**
+     * 获取api-config
+     * @return mixed
+     */
     public static function getConfig(){
         return require (__DIR__.'/api.config.php');
     }
@@ -124,6 +149,7 @@ class Controller extends \yii\rest\Controller
     }
 
     /**
+     * 获取action对应的rule规则
      * @param \yii\base\Action $action $action
      * @return array
      */
@@ -135,6 +161,11 @@ class Controller extends \yii\rest\Controller
         return array_merge($commonRule,$uniqueRule);
     }
 
+    /**
+     * 设置expand
+     * 详见 \yii\base\Model::toArray() 的介绍
+     * @param Model $expand
+     */
     public function setExpand($expand)
     {
         $params = Yii::$app->request->getQueryParams();
@@ -150,6 +181,11 @@ class Controller extends \yii\rest\Controller
         Yii::$app->request->setQueryParams($params);
     }
 
+    /**
+     * 简单构造一个 DataProvider 用以返回数据
+     * @param $query
+     * @return ActiveDataProvider
+     */
     public function getActiveDataProvider($query)
     {
         $dataProvider = new ActiveDataProvider([
@@ -183,6 +219,12 @@ class Controller extends \yii\rest\Controller
         return true;
     }
 
+    /**
+     * @param \yii\base\Action $action
+     * @param mixed $result
+     * @return array|mixed
+     * @throws \deepziyu\yii\rest\ApiException
+     */
     public function afterAction($action, $result)
     {
         $response = Yii::$app->getResponse();
