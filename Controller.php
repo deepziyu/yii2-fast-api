@@ -4,6 +4,7 @@ namespace deepziyu\yii\rest;
 use Yii;
 use yii\data\ActiveDataProvider;
 use yii\base\InlineAction;
+use yii\data\Pagination;
 use yii\web\Request;
 use yii\web\BadRequestHttpException;
 use yii\validators\Validator;
@@ -49,7 +50,7 @@ class Controller extends \yii\rest\Controller
     /**
      * 参数的检验规则
      * 次方法返回的预设规则将在beforeAction事件中被校验
-     * 使用示例：
+     * - 简单示例：
      * ```php
      * return [
      *    //设置 indexAction()的rule
@@ -59,7 +60,7 @@ class Controller extends \yii\rest\Controller
      *    ];
      * ];
      * ```
-     * 可以用 * 号通配所有的actions
+     * - 可以用 * 号通配所有的actions
      * ```php
      * return [
      *    '*' => [
@@ -67,7 +68,14 @@ class Controller extends \yii\rest\Controller
      *    ];
      * ];
      * ```
-     * 更多检验器的设置方法见
+     * - 可以 指定到某个 model 的 rules
+     * ```php
+     * return [
+     *    //设置并唯一用 YouModel::rules() 检验路由 index
+     *    'index' => 'app\modes\YouModel';
+     * ];
+     * ```
+     * - 更多检验器的设置方法见
      * http://www.yiichina.com/doc/guide/2.0/input-
      *
      * @return array
@@ -81,8 +89,9 @@ class Controller extends \yii\rest\Controller
      * 获取api-config
      * @return mixed
      */
-    public static function getConfig(){
-        return require (__DIR__.'/api.config.php');
+    public static function getConfig()
+    {
+        return require(__DIR__ . '/api.config.php');
     }
 
     /**
@@ -101,7 +110,7 @@ class Controller extends \yii\rest\Controller
             $method = new \ReflectionMethod($action, 'run');
         }
 
-        $params = array_merge($params,$this->request->getBodyParams());
+        $params = array_merge($params, $this->request->getBodyParams());
 
         $args = [];
         $missing = [];
@@ -110,7 +119,7 @@ class Controller extends \yii\rest\Controller
             $name = $param->getName();
             if (array_key_exists($name, $params)) {
                 if ($param->isArray()) {
-                    $args[] = $actionParams[$name] = (array) $params[$name];
+                    $args[] = $actionParams[$name] = (array)$params[$name];
                 } elseif (!is_array($params[$name])) {
                     $args[] = $actionParams[$name] = $params[$name];
                 } else {
@@ -134,11 +143,15 @@ class Controller extends \yii\rest\Controller
 
         $rule = $this->getRule($action);
         if ($rule) {
-            $model = DynamicModel::validateData($actionParams,$rule);
-            $model->getValidators();
+            if($rule instanceof Model){
+                $model = $rule;
+                $model->load($actionParams,'');
+            }else{
+                $model = DynamicModel::validateData($actionParams, $rule);
+            }
             $model->validate();
-            if($model->hasErrors()){
-                throw new ApiException(422,$model);
+            if ($model->hasErrors()) {
+                throw new ApiException(422, $model);
             }
             $actionParams = $model->getAttributes();
         }
@@ -151,14 +164,20 @@ class Controller extends \yii\rest\Controller
     /**
      * 获取action对应的rule规则
      * @param \yii\base\Action $action $action
-     * @return array
+     * @return array|\yii\base\Model
      */
     protected function getRule($action)
     {
         $rules = $this->rules();
-        $commonRule = isset($rules['*']) ? $rules['*'] :  [];
+        $commonRule = isset($rules['*']) ? $rules['*'] : [];
         $uniqueRule = isset($rules[$action->id]) ? $rules[$action->id] : [];
-        return array_merge($commonRule,$uniqueRule);
+        if (is_string($uniqueRule) || (is_array($uniqueRule) && isset($uniqueRule['class']))) {
+            /* @var $model \yii\base\Model */
+            $model = Yii::createObject($uniqueRule);
+            //$uniqueRule = $model->rules();
+            return $model;
+        }
+        return array_merge($commonRule, $uniqueRule);
     }
 
     /**
@@ -230,14 +249,14 @@ class Controller extends \yii\rest\Controller
         $response = Yii::$app->getResponse();
         $response->format = 'json';
         if ($result instanceof Model && $result->hasErrors()) {
-            throw new \deepziyu\yii\rest\ApiException(422,$result);
+            throw new \deepziyu\yii\rest\ApiException(422, $result);
         }
         $result = parent::afterAction($action, $result);
         $code = $response->getStatusCode();
         $result = [
-            'code'=>$code,
-            'data'=>$result,
-            'message'=>$response->statusText
+            'code' => $code,
+            'data' => $result,
+            'message' => $response->statusText
         ];
         Yii::info('请求返回结果：' . \yii\helpers\Json::encode($result), 'response');
         return $result;
