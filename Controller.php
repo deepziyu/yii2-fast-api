@@ -211,7 +211,7 @@ class Controller extends \yii\rest\Controller
             'query' => $query,
         ]);
         if ($dataProvider->models) {
-            foreach ($dataProvider->models as $key => &$m) {
+            foreach ($dataProvider->models as $key => $m) {
                 if (isset($m->_id)) {
                     $m->_id = (string)$m->_id;
                 }
