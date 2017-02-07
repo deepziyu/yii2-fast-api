@@ -14,7 +14,7 @@ yii2-fast-api是一个Yii2框架的扩展，用于配置完善Yii2，以实现ap
 }
 ```
 
-- 执行 `$ php composer.phar install` 或 `$ composer install` 进行安装。
+- 执行 `$ php composer.phar update` 或 `$ composer update` 进行安装。
 
 - 在配置文件中（ Yii2 高级版为 main.php，Yii2 基础版为 web.php ）注入 fast-api 的配置：
 
@@ -30,6 +30,7 @@ return $config;
 ### Usage
 
 - 建立控制器
+
 ```
 class YourController extends deepziyu\yii\rest\Controller
 {
