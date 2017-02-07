@@ -13,10 +13,16 @@ use yii\base\Model;
 use deepziyu\yii\rest\ApiException;
 use yii\web\User;
 
+use yii\filters\auth\CompositeAuth;
+use yii\filters\auth\HttpBasicAuth;
+use yii\filters\auth\QueryParamAuth;
+use yii\filters\auth\HttpBearerAuth;
+
 /**
  * Class Controller
  * @property Request $request The request component.
  * @property User $user The user model.
+ * @property boolean $enableAuth 是否开启用户认证
  * @package deepziyu\yii\rest
  */
 class Controller extends \yii\rest\Controller
@@ -25,6 +31,8 @@ class Controller extends \yii\rest\Controller
     public $user;
 
     public $enableCsrfValidation = false;
+
+    public $enableAuth = false;
 
     public $serializer = [
         'class' => 'yii\rest\Serializer',
@@ -36,6 +44,25 @@ class Controller extends \yii\rest\Controller
         parent::init();
         $this->user = Yii::$app->user->identity;
         $this->request = Yii::$app->getRequest();
+    }
+
+    public function behaviors()
+    {
+        $behaviors = parent::behaviors();
+
+        if($this->enableAuth){
+            $behaviors['authenticator'] = [
+                'class' => CompositeAuth::className(),
+                'authMethods' => [
+                    HttpBasicAuth::className(),
+                    QueryParamAuth::className(),
+                    HttpBearerAuth::className(),
+                ],
+                'optional' => $this->authOptional()
+            ];
+        }
+
+        return $behaviors;
     }
 
     /**
@@ -86,6 +113,16 @@ class Controller extends \yii\rest\Controller
     }
 
     /**
+     * 不需要验证用户令牌actionID
+     * 当$this->$enableAuth == true时，此方法定义除外，所有的ation将被验证用户认证令牌是否正确。
+     * @return array
+     */
+    public function authOptional()
+    {
+        return [];
+    }
+
+    /**
      * 获取api-config
      * @return mixed
      */
@@ -111,7 +148,20 @@ class Controller extends \yii\rest\Controller
         }
 
         $params = array_merge($params, $this->request->getBodyParams());
-
+        $rule = $this->getRule($action);
+        if ($rule) {
+            if($rule instanceof Model){
+                $model = $rule;
+                $model->load($params,'');
+            }else{
+                $model = DynamicModel::validateData($params, $rule);
+            }
+            $model->validate();
+            if ($model->hasErrors()) {
+                throw new ApiException(422, $model);
+            }
+            $params = array_replace($params, $model->getAttributes());
+        }
         $args = [];
         $missing = [];
         $actionParams = [];
@@ -141,24 +191,24 @@ class Controller extends \yii\rest\Controller
             ]));
         }
 
-        $rule = $this->getRule($action);
-        if ($rule) {
-            if($rule instanceof Model){
-                $model = $rule;
-                $model->load($actionParams,'');
-            }else{
-                $model = DynamicModel::validateData($actionParams, $rule);
-            }
-            $model->validate();
-            if ($model->hasErrors()) {
-                throw new ApiException(422, $model);
-            }
-            $actionParams = $model->getAttributes();
-        }
-
+//        $rule = $this->getRule($action);
+//        if ($rule) {
+//            if($rule instanceof Model){
+//                $model = $rule;
+//                $model->load($actionParams,'');
+//            }else{
+//                $model = DynamicModel::validateData($actionParams, $rule);
+//            }
+//            $model->validate();
+//            if ($model->hasErrors()) {
+//                throw new ApiException(422, $model);
+//            }
+//            $actionParams = $model->getAttributes();
+//        }
+//
         $this->actionParams = $actionParams;
 
-        return $actionParams;
+        return $args;
     }
 
     /**
@@ -211,9 +261,11 @@ class Controller extends \yii\rest\Controller
             'query' => $query,
         ]);
         if ($dataProvider->models) {
-            foreach ($dataProvider->models as $key => &$m) {
+            foreach ($dataProvider->models as $key => $m) {
                 if (isset($m->_id)) {
                     $m->_id = (string)$m->_id;
+                }else{
+                    break;
                 }
             }
         }
@@ -230,8 +282,11 @@ class Controller extends \yii\rest\Controller
     public function beforeAction($action)
     {
         if (parent::beforeAction($action)) {
-            Yii::info('请求地址：' . $this->request->absoluteUrl, 'request');
+            /**
+             * 记录日志，比如
+              Yii::info('请求地址：' . $this->request->absoluteUrl, 'request');
             Yii::info('请求数据：' . \yii\helpers\Json::encode($this->request->getBodyParams()), 'request');
+             */
         } else {
             return false;
         }
@@ -258,7 +313,8 @@ class Controller extends \yii\rest\Controller
             'data' => $result,
             'message' => $response->statusText
         ];
-        Yii::info('请求返回结果：' . \yii\helpers\Json::encode($result), 'response');
+        //记录日志比如：
+        //Yii::info('请求返回结果：' . \yii\helpers\Json::encode($result), 'response');
         return $result;
     }
 }
