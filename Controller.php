@@ -164,22 +164,20 @@ class Controller extends \yii\rest\Controller
         }
         $args = [];
         $missing = [];
-        $actionParams = [];
         foreach ($method->getParameters() as $param) {
             $name = $param->getName();
             if (array_key_exists($name, $params)) {
                 if ($param->isArray()) {
-                    $args[] = $actionParams[$name] = (array)$params[$name];
+                    $args[] = (array)$params[$name];
                 } elseif (!is_array($params[$name])) {
-                    $args[] = $actionParams[$name] = $params[$name];
+                    $args[] = $params[$name];
                 } else {
                     throw new BadRequestHttpException(Yii::t('yii', 'Invalid data received for parameter "{param}".', [
                         'param' => $name,
                     ]));
                 }
-                unset($params[$name]);
             } elseif ($param->isDefaultValueAvailable()) {
-                $args[] = $actionParams[$name] = $param->getDefaultValue();
+                $args[] = $params[$name] = $param->getDefaultValue();
             } else {
                 $missing[] = $name;
             }
@@ -191,22 +189,7 @@ class Controller extends \yii\rest\Controller
             ]));
         }
 
-//        $rule = $this->getRule($action);
-//        if ($rule) {
-//            if($rule instanceof Model){
-//                $model = $rule;
-//                $model->load($actionParams,'');
-//            }else{
-//                $model = DynamicModel::validateData($actionParams, $rule);
-//            }
-//            $model->validate();
-//            if ($model->hasErrors()) {
-//                throw new ApiException(422, $model);
-//            }
-//            $actionParams = $model->getAttributes();
-//        }
-//
-        $this->actionParams = $actionParams;
+        $this->actionParams = $params;
 
         return $args;
     }

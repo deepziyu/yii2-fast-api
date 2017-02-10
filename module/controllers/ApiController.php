@@ -26,7 +26,12 @@ class ApiController extends Controller
         $model = new Route();
 
         $routes =  $model->getRoutes();
-        unset($routes['/route/*'],$routes['/*']);
+        unset($routes['/*']);
+        foreach ($routes as $key =>  &$route) {
+            if(preg_match('#^/route|gii|debug/#',$key,$m)){
+                unset($routes[$key]);
+            }
+        }
         $routes = array_reverse($routes);
         return $this->renderPartial('index',[
             'routes'=>$routes
